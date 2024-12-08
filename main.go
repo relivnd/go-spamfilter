@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-var file = "files/ham-anlern/0126.d002ec3f8a9aff31258bf03d62abdafa"
+const hamDirectory string = "files/ham-anlern/"
 
 func main() {
-
-	array := readFile(file)
-	fmt.Println(array[2])
+	var fileArray = readDirectory(hamDirectory)
+	var stringArray = readFile(hamDirectory + fileArray[0].Name())
+	fmt.Println(stringArray)
 }
 
 func readFile(filename string) []string {
@@ -21,4 +21,12 @@ func readFile(filename string) []string {
 		log.Fatal(err)
 	}
 	return strings.Split(string(content), " ")
+}
+
+func readDirectory(directoy string) []os.DirEntry {
+	content, err := os.ReadDir(directoy)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return content
 }
