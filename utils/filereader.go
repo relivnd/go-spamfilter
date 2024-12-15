@@ -18,10 +18,15 @@ func ListFilesInDir(directoy string) []string {
 	return fileNames
 }
 
-func TurnFileIntoStringSlice(filename string) []string {
+func TurnFileIntoStringMap(filename string) map[string]struct{} {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return strings.Split(string(content), " ")
+	m := make(map[string]struct{})
+	words := strings.Split(string(content), " ")
+	for _, val := range words {
+		m[val] = struct{}{}
+	}
+	return m
 }

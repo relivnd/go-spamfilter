@@ -16,14 +16,20 @@ type Word struct {
 	hamOccurrences  int16
 }
 
+type Probability struct {
+	hamProbability  float32
+	spamProbability float32
+}
+
 func main() {
 	fmt.Println("let's get all the provided ham files from the ham directory")
 	hamFiles := utils.ListFilesInDir(hamDir)
-	fmt.Printf("there are %d ham files in the directory", len(hamFiles))
+	numberOfHamFiles := len(hamFiles)
+	fmt.Printf("there are %d ham files in the directory\n", numberOfHamFiles)
 	wordOccurrences := make(map[string]Word)
 	for i := range hamFiles {
-		wordSlice := utils.TurnFileIntoStringSlice(hamDir + hamFiles[i])
-		for _, word := range wordSlice {
+		wordMap := utils.TurnFileIntoStringMap(hamDir + hamFiles[i])
+		for word := range wordMap {
 			curr := wordOccurrences[word]
 			curr.hamOccurrences++
 			wordOccurrences[word] = curr
@@ -32,14 +38,27 @@ func main() {
 
 	fmt.Println("let's get all the provided spam files from the spam directory")
 	spamFiles := utils.ListFilesInDir(spamDir)
-	fmt.Printf("there are %d spam files in the directory", len(spamFiles))
+	numberOfSpamFiles := len(spamFiles)
+	fmt.Printf("there are %d spam files in the directory\n", numberOfSpamFiles)
 	for i := range spamFiles {
-		wordSlice := utils.TurnFileIntoStringSlice(spamDir + spamFiles[i])
-		for _, word := range wordSlice {
+		wordMap := utils.TurnFileIntoStringMap(spamDir + spamFiles[i])
+		for word := range wordMap {
 			curr := wordOccurrences[word]
 			curr.spamOccurrences++
 			wordOccurrences[word] = curr
 		}
 	}
-	fmt.Println(wordOccurrences)
+
+	totalNumberOfFiles := numberOfHamFiles + numberOfSpamFiles
+	fmt.Printf("a total number of %d mail have been analysed\n", totalNumberOfFiles)
+	wordProbabilities := make(map[string]Probability)
+	for k, val := range wordOccurrences {
+		i := Probability{}
+		i.hamProbability = float32(val.hamOccurrences) / float32(numberOfHamFiles)
+		i.spamProbability = float32(val.spamOccurrences) / float32(numberOfSpamFiles)
+		wordProbabilities[k] = i
+	}
+
+	fmt.Println(wordProbabilities)
+
 }
