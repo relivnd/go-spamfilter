@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	filesDir string = "files/"
-	hamDir   string = filesDir + "ham-anlern/"
-	spamDir  string = filesDir + "spam-anlern/"
+	filesDir string  = "files/"
+	hamDir   string  = filesDir + "ham-anlern/"
+	spamDir  string  = filesDir + "spam-anlern/"
+	alpha    float32 = 0.00001
 )
 
 type Word struct {
@@ -55,7 +56,13 @@ func main() {
 	for k, val := range wordOccurrences {
 		i := Probability{}
 		i.hamProbability = float32(val.hamOccurrences) / float32(numberOfHamFiles)
+		if i.hamProbability == 0 {
+			i.hamProbability = alpha
+		}
 		i.spamProbability = float32(val.spamOccurrences) / float32(numberOfSpamFiles)
+		if i.spamProbability == 0 {
+			i.spamProbability = alpha
+		}
 		wordProbabilities[k] = i
 	}
 
