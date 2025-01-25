@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"spam_filter/models"
 	"spam_filter/utils"
 )
 
@@ -14,27 +15,17 @@ const (
 	alpha      float32 = 0.00001
 )
 
-type Word struct {
-	spamOccurrences int16
-	hamOccurrences  int16
-}
-
-type Probability struct {
-	hamProbability  float32
-	spamProbability float32
-}
-
 func main() {
 	fmt.Println("let's get all the provided ham files from the ham directory")
 	hamFiles := utils.ListFilesInDir(hamDir)
 	numberOfHamFiles := len(hamFiles)
 	fmt.Printf("there are %d ham files in the directory\n", numberOfHamFiles)
-	wordOccurrences := make(map[string]Word)
+	wordOccurrences := make(map[string]models.Word)
 	for i := range hamFiles {
 		wordMap := utils.TurnFileIntoStringMap(hamDir + hamFiles[i])
 		for word := range wordMap {
 			curr := wordOccurrences[word]
-			curr.hamOccurrences++
+			curr.HamOccurrences++
 			wordOccurrences[word] = curr
 		}
 	}
@@ -47,23 +38,23 @@ func main() {
 		wordMap := utils.TurnFileIntoStringMap(spamDir + spamFiles[i])
 		for word := range wordMap {
 			curr := wordOccurrences[word]
-			curr.spamOccurrences++
+			curr.SpamOccurrences++
 			wordOccurrences[word] = curr
 		}
 	}
 
 	totalNumberOfFiles := numberOfHamFiles + numberOfSpamFiles
 	fmt.Printf("a total number of %d mail have been analysed\n", totalNumberOfFiles)
-	wordProbabilities := make(map[string]Probability)
+	wordProbabilities := make(map[string]models.Probability)
 	for k, val := range wordOccurrences {
-		i := Probability{}
-		i.hamProbability = float32(val.hamOccurrences) / float32(numberOfHamFiles)
-		if i.hamProbability == 0 {
-			i.hamProbability = alpha
+		i := models.Probability{}
+		i.HamProbability = float32(val.HamOccurrences) / float32(numberOfHamFiles)
+		if i.HamProbability == 0 {
+			i.HamProbability = alpha
 		}
-		i.spamProbability = float32(val.spamOccurrences) / float32(numberOfSpamFiles)
-		if i.spamProbability == 0 {
-			i.spamProbability = alpha
+		i.SpamProbability = float32(val.SpamOccurrences) / float32(numberOfSpamFiles)
+		if i.SpamProbability == 0 {
+			i.SpamProbability = alpha
 		}
 		wordProbabilities[k] = i
 	}
@@ -84,7 +75,7 @@ func main() {
 		wordSpamProbability := 0.0
 		mailSpamProbability := 0.0
 		for word := range wordMap {
-			wordSpamProbability = float64(wordProbabilities[word].spamProbability) / (float64(wordProbabilities[word].spamProbability) + float64(wordProbabilities[word].hamProbability))
+			wordSpamProbability = float64(wordProbabilities[word].SpamProbability) / (float64(wordProbabilities[word].SpamProbability) + float64(wordProbabilities[word].HamProbability))
 			b = b * wordSpamProbability
 			c = c * (1.0 - wordSpamProbability)
 		} //TODO: the combination of the probabilities is missing
