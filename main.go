@@ -6,10 +6,12 @@ import (
 )
 
 const (
-	filesDir string  = "files/"
-	hamDir   string  = filesDir + "ham-anlern/"
-	spamDir  string  = filesDir + "spam-anlern/"
-	alpha    float32 = 0.00001
+	filesDir   string  = "files/"
+	hamDir     string  = filesDir + "ham-anlern/"
+	spamDir    string  = filesDir + "spam-anlern/"
+	hamCalDir  string  = filesDir + "ham-kallibrierung/"
+	spamCalDir string  = filesDir + "spam-kallibrierung/"
+	alpha      float32 = 0.00001
 )
 
 type Word struct {
@@ -66,6 +68,35 @@ func main() {
 		wordProbabilities[k] = i
 	}
 
-	fmt.Println(wordProbabilities)
+	fmt.Println("start calibration")
+	numberOfSpamClassifiedMails := 0
+	numberOfHamClassifiedMails := 0
+
+	fmt.Println("first the ham files")
+	hamCalFiles := utils.ListFilesInDir(hamCalDir)
+	numberOfHamCalFiles := len(hamCalFiles)
+	fmt.Printf("there are %d ham files in the directory\n", numberOfHamCalFiles)
+
+	for i := range hamCalFiles {
+		wordMap := utils.TurnFileIntoStringMap(hamCalDir + hamCalFiles[i])
+		b := 1.0
+		c := 1.0
+		wordSpamProbability := 0.0
+		mailSpamProbability := 0.0
+		for word := range wordMap {
+			wordSpamProbability = float64(wordProbabilities[word].spamProbability) / (float64(wordProbabilities[word].spamProbability) + float64(wordProbabilities[word].hamProbability))
+			b = b * wordSpamProbability
+			c = c * (1.0 - wordSpamProbability)
+		} //TODO: the combination of the probabilities is missing
+		mailSpamProbability = b / (b + c)
+		if mailSpamProbability > 0.5 {
+			numberOfSpamClassifiedMails++
+			fmt.Printf("SPAM: the mail with name %s has a spam probability of %f\n", hamCalFiles[i], mailSpamProbability)
+		} else {
+			numberOfHamClassifiedMails++
+			fmt.Printf("HAM: the mail with name %s has a spam probability of %f\n", hamCalFiles[i], mailSpamProbability)
+		}
+	}
+	fmt.Printf("there were %d SPAM mails and %d HAM mails. The total number of mails were %d\n", numberOfSpamClassifiedMails, numberOfHamClassifiedMails, numberOfHamCalFiles)
 
 }
